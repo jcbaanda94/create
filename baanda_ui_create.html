@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Baanda - Community Setup (Final Expanded Mockup)</title>
+  <style>
+    /* Basic reset & font */
+    body, h1, h2, h3, h4, p, ul, li, input, button, select, textarea {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background: #f0f0f0;
+    }
+
+    /* Modal overlay */
+    #modalOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Modal container */
+    #modalContainer {
+      background: #fff;
+      width: 900px;
+      max-width: 98%;
+      height: 600px;
+      max-height: 90%;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: row;
+      position: relative;
+    }
+
+    /* Left-side navigation (the tabs) */
+    #sideNav {
+      width: 220px;
+      border-right: 1px solid #ccc;
+      padding: 20px 0;
+      background: #fafafa;
+    }
+    #sideNav ul {
+      list-style: none;
+    }
+    #sideNav li {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-left: 4px solid transparent;
+    }
+    #sideNav li:hover {
+      background: #eee;
+    }
+    #sideNav li.active {
+      background: #fff;
+      border-left: 4px solid #28a745;
+      font-weight: bold;
+    }
+
+    /* Right-side content area */
+    #contentArea {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto; /* allow vertical scrolling if needed */
+      position: relative;
+    }
+
+    /* Title / top bar in the content area */
+    #contentArea h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: #333;
+    }
+    #contentArea h3 {
+      margin-bottom: 20px;
+      font-size: 1rem;
+      color: #444;
+    }
+    #contentArea h4 {
+      margin: 15px 0 10px;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    /* Form elements */
+    label {
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 10px;
+      margin-bottom: 5px;
+    }
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    small {
+      display: block;
+      margin-bottom: 10px;
+      color: #666;
+      font-size: 0.85rem;
+    }
+    .inline-block {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+
+    /* Buttons */
+    .button-row {
+      margin-top: 20px;
+      text-align: right;
+    }
+    button {
+      cursor: pointer;
+      background: #eee;
+      color: #333;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 6px 12px;
+      margin: 0 4px;
+      font-size: 0.9rem;
+    }
+    button:hover {
+      background: #ddd;
+    }
+    .primary-btn {
+      background: #28a745;
+      color: #fff;
+      border-color: #1e7e34;
+      font-weight: bold;
+    }
+    .primary-btn:hover {
+      background: #218838;
+    }
+
+    /* Hide tab content by default */
+    .tab-content {
+      display: none;
+    }
+    .visible {
+      display: block;
+    }
+
+    /* Close (X) button at top right corner */
+    #closeBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 0.9rem;
+      border: none;
+      background: transparent;
+      color: #999;
+      cursor: pointer;
+    }
+    #closeBtn:hover {
+      color: #333;
+    }
+
+    /* Styling for the scroll bar in the content area */
+    #contentArea {
+      scrollbar-width: thin;
+      scrollbar-color: #ccc #f0f0f0;
+    }
+    #contentArea::-webkit-scrollbar {
+      width: 8px;
+    }
+    #contentArea::-webkit-scrollbar-thumb {
+      background-color: #ccc;
+      border-radius: 4px;
+    }
+    #contentArea::-webkit-scrollbar-track {
+      background: #fafafa;
+    }
+
+    /* Simple row layout for address fields, etc. */
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .row > div {
+      flex: 1;
+      min-width: 100px;
+      margin-right: 10px;
+    }
+    .row > div:last-child {
+      margin-right: 0;
+    }
+
+  </style>
+  <script>
+    // Tabs array to match with <li data-tab="..."> & <div id="..."> blocks
+    let tabs = [
+      "BasicInfo",
+      "Describe",
+      "Offerings",
+      "Process",
+      "Members",
+      "Rules",
+      "Contact",
+      "Search"
+    ];
+
+    function showTab(tabId) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.remove('visible');
+      });
+      // Remove 'active' from all nav items
+      document.querySelectorAll('#sideNav li').forEach(li => {
+        li.classList.remove('active');
+      });
+      // Show the selected tab
+      document.getElementById(tabId).classList.add('visible');
+      // Set the corresponding nav item to active
+      let navItem = document.querySelector(`#sideNav li[data-tab="${tabId}"]`);
+      if (navItem) {
+        navItem.classList.add('active');
+      }
+    }
+
+    // Mock actions
+    function saveDraft() {
+      alert("Draft saved (demo)!");
+    }
+    function createCommunity() {
+      alert("Community created (demo)!");
+    }
+    function closeModal() {
+      // For the demo, just hide the overlay
+      document.getElementById('modalOverlay').style.display = 'none';
+    }
+
+    window.onload = function() {
+      // Initialize first tab
+      showTab("BasicInfo");
+      // Add click listeners to the tab items
+      document.querySelectorAll('#sideNav li').forEach(li => {
+        li.addEventListener('click', function() {
+          showTab(this.getAttribute('data-tab'));
+        });
+      });
+    };
+  </script>
+</head>
+<body>
+
+<!-- Modal Overlay + Container -->
+<div id="modalOverlay">
+  <div id="modalContainer">
+    
+    <!-- Side Navigation -->
+    <nav id="sideNav">
+      <ul>
+        <li data-tab="BasicInfo" class="active">Basic Info</li>
+        <li data-tab="Describe">Describe</li>
+        <li data-tab="Offerings">Offerings</li>
+        <li data-tab="Process">Process</li>
+        <li data-tab="Members">Members</li>
+        <li data-tab="Rules">Rules</li>
+        <li data-tab="Contact">Contact</li>
+        <li data-tab="Search">Search</li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="contentArea">
+      <!-- Optional Close (X) button -->
+      <button id="closeBtn" onclick="closeModal()">X</button>
+      <h2>Baanda - Create / Edit Community</h2>
+      <h3>(Tabbed Modal - Final Expanded Version)</h3>
+
+      <!-- TAB 1: Basic Info -->
+      <div id="BasicInfo" class="tab-content visible">
+        <h4>Basic Info</h4>
+        <label>Nickname (5 - 20 chars)</label>
+        <input type="text" placeholder="e.g. 'GreenLiving'"/>
+        <small>Short, internal reference name.</small>
+
+        <label>Official Name (unique)</label>
+        <input type="text" placeholder="e.g. 'Green Living Community'"/>
+        <small>Publicly visible name of the community.</small>
+
+        <label>Community Type</label>
+        <select>
+          <option>-- Select --</option>
+          <option>Public</option>
+          <option>Private</option>
+          <option>Membership‐based</option>
+        </select>
+        <small>Visibility / access type for the community.</small>
+
+        <div class="button-row">
+          <button onclick="saveDraft()">Save Draft</button>
+        </div>
+      </div>
+
+      <!-- TAB 2: Describe -->
+      <div id="Describe" class="tab-content">
+        <h4>Describe the Community</h4>
+        <label>Description (max 1500 chars)</label>
+        <textarea rows="5" placeholder="What is your community about?"></textarea>
+        <small>Use linebreaks for paragraphs. Summarize the purpose or goals here.</small>
+
+        <label>Mission Statement (max 250 chars)</label>
+        <input type="text" placeholder="E.g. 'Promote eco-living & sustainability'"/>
+
+        <label>Signboard Short (max 18 chars)</label>
+        <input type="text" placeholder="e.g. 'Green Village'"/>
+
+        <label>Signboard Long (max 55 chars)</label>
+        <input type="text" placeholder="e.g. 'A place for eco-conscious collaboration'"/>
+
+        <div class="button-row">
+          <button onclick="saveDraft()">Save Draft</button>
+        </div>
+      </div>
+
+      <!-- TAB 3: Offerings -->
+      <div id="Offerings" class="tab-content">
+        <h4>Offerings - Community Services</h4>
+        <label>Describe the community's offerings</label>
+        <textarea rows="5" placeholder="Describe community services or items provided"></textarea>
+        <small>Max 1000 characters. Use linebreaks to create paragraphs.</small>
+
+        <p><strong>Catalog is exposed to:</strong></p>
+        <label class="inline-block">
+          <input type="radio" name="offeringsExposure" value="public" checked> Public (Everyone)
+        </label>
+        <label class="inline-block">
+          <input type="radio" name="offeringsExposure" value="private"> Private (Members only)
+        </label>
+
+        <div class="button-row">
+          <button onclick="saveDraft()">Save Draft</button>
+        </div>
+      </div>
+
+      <!-- TAB 4: Process -->
+      <div id="Process" class="tab-content">
+        <h4>Process - How Will the Community Work?</h4>
+        <label>Describe the community's working process (max 1000 chars)</label>
+        <textarea rows="5" placeholder="Outline how tasks, decisions, or collaborations happen here."></textarea>
+        <small>Use linebreaks to create paragraphs.</small>
+
+        <p><strong>Interaction:</strong></p>
+        <label class="inline-block"><input type="radio" name="interaction" value="in-person"> In-person</label>
+        <label class="inline-block"><input type="radio" name="interaction" value="online"> Online</label>
+        <label class="inline-block">
+          <input type="radio" name="interaction" value="both" checked> Both (online & in-person)
+        </label>
+
+        <br><br>
+        <label>Membership Fee ($)</label>
+        <input type="text" placeholder="0" style="width:100px;" />
+
+        <div class="button-row">
+          <button onclick="saveDraft()">Save Draft</button>
+        </div>
+      </div>
+
+      <!-- TAB 5: Members -->
+      <div id="Members" class="tab-content">
+        <h4>Members - What, How, and Why</h4>
+        <label>Membership Procedures (max 1000 chars)</label>
+        <textarea rows="5" placeholder="Describe how members join, any prerequisites, etc."></textarea>
+        <small>Use linebreaks to create paragraphs, or indicate 'N/A' if not applicable.</small>
+
+        <div class="button-row">
+          <button onclick="saveDraft()">Save Draft</button>
+        </div>
+      </div>
+
+      <!-- TAB 6: Rules -->
+      <div id="Rules" class="tab-content">
+        <h4>Rules and Ethics Guidelines</h4>
+        <textarea rows="5" placeholder="Describe community's rules and regulations..."></textarea>
+        <small>Describe rules/ethics in max 1000 chars. Use linebreaks to create paragraphs.</small>
+
+        <p><strong>Interaction Type:</strong></p>
+        <label class="inline-block">
+          <input type="radio" name="interactionType" value="ecommerce" checked> E-commerce only
+        </label>
+        <label class="inline-block">
+          <input type="radio" name="interactionType" value="brick"> Brick & Mortar only
+        </label>
+        <label class="inline-block">
+          <input type="radio" name="interactionType" value="both"> Both
+        </label>
+
+        <div class="button-row">
+          <button onclick="saveDraft()">Save Draft</button>
+        </div>
+      </div>
+
+      <!-- TAB 7: Contact -->
+      <div id="Contact" class="tab-content">
+        <h4>Contact & Address</h4>
+        
+        <label>Community's Postal Address</label>
+        <div class="row">
+          <div><input type="text" placeholder="Street address..." /></div>
+          <div><input type="text" placeholder="Apt# or Suite#..." /></div>
+        </div>
+        <div class="row">
+          <div><input type="text" placeholder="City..." /></div>
+          <div><input type="text" placeholder="State" /></div>
+          <div><input type="text" placeholder="Zip" /></div>
+          <div><input type="text" placeholder="USA" /></div>
+        </div>
+
+        <label>Contact's Name & Email</label>
+        <div class="row">
+          <div><input type="text" placeholder="e.g. John Doe" /></div>
+          <div><input type="text" placeholder="e.g. john@baanda.com" /></div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Contact Cell #</label>
+            <div style="display: flex;">
+              <select style="width:60px; margin-right:5px;">
+                <option>+1</option>
+                <option>+44</option>
+                <option>+91</option>
+              </select>
+              <input type="text" placeholder="(xxx) xxx-xxxx" />
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <strong>Are you in hometown now?</strong><br/>
+            <label><input type="radio" name="hometown" value="yes"> Yes</label>
+            <label><input type="radio" name="hometown" value="no" checked> No</label>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button onclick="saveDraft()">Save Draft</button>
+        </div>
+      </div>
+
+      <!-- TAB 8: Search -->
+      <div id="Search" class="tab-content">
+        <h4>Setup Search Conditions</h4>
+        <label>Search Words</label>
+        <input type="text" placeholder="Enter a few search words"/>
+        <small>Enter search words separated by commas (,).</small>
+
+        <p>You might optionally outline advanced filters or indexing preferences here.</p>
+
+        <div class="button-row">
+          <button onclick="saveDraft()">Save Draft</button>
+        </div>
+      </div>
+
+      <!-- "Create Community" button always available -->
+      <div class="button-row">
+        <button class="primary-btn" onclick="createCommunity()">Create Community</button>
+      </div>
+
+    </div> <!-- end #contentArea -->
+  </div> <!-- end #modalContainer -->
+</div> <!-- end #modalOverlay -->
+
+</body>
+</html>
